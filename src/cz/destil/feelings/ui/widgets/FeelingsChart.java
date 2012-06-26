@@ -90,6 +90,8 @@ public class FeelingsChart extends TimeChart {
 			}
 		}
 	}
+	
+	
 
 	/**
 	 * Set renderer option for feelings graph

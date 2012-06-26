@@ -29,7 +29,7 @@ public class SettingsActivity extends PreferenceActivity {
 		final Preference notificationPreference = findPreference(KEY_NOTIFICATION_TIME);
 		notificationPreference.setDefaultValue(getDefaultNotificationTime());
 		notificationPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-			
+
 			@Override
 			public boolean onPreferenceChange(Preference preference, Object newValue) {
 				sendBroadcast(new Intent(SettingsActivity.this, AlarmSetter.class));
@@ -37,19 +37,19 @@ public class SettingsActivity extends PreferenceActivity {
 			}
 		});
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    switch (item.getItemId()) {
-	        case android.R.id.home:
-	            // app icon in action bar clicked; go home
-	            Intent intent = new Intent(this, MainActivity_.class);
-	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-	            startActivity(intent);
-	            return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
-	    }
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// app icon in action bar clicked; go home
+			Intent intent = new Intent(this, MainActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 
 	/**
@@ -71,14 +71,14 @@ public class SettingsActivity extends PreferenceActivity {
 		calendar.setTimeInMillis(sp.getLong(KEY_NOTIFICATION_TIME, getDefaultNotificationTime()));
 		return calendar.get(Calendar.MINUTE);
 	}
-	
+
 	/**
 	 * @return Default notification time in millis
 	 */
 	private static long getDefaultNotificationTime() {
 		Calendar calendar = new GregorianCalendar();
 		// 06:00
-		calendar.set(Calendar.HOUR_OF_DAY, 6); 
+		calendar.set(Calendar.HOUR_OF_DAY, 6);
 		calendar.set(Calendar.MINUTE, 0);
 		return calendar.getTimeInMillis();
 	}

@@ -1,27 +1,32 @@
 package cz.destil.feelings.ui;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.achartengine.GraphicalView;
 import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
 
+import android.app.ActionBar;
+import android.app.ActionBar.Tab;
+import android.app.ActionBar.TabListener;
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.database.ContentObserver;
-import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-
-import com.googlecode.androidannotations.annotations.Background;
-import com.googlecode.androidannotations.annotations.EActivity;
-import com.googlecode.androidannotations.annotations.OptionsItem;
-import com.googlecode.androidannotations.annotations.OptionsMenu;
-import com.googlecode.androidannotations.annotations.UiThread;
-import com.googlecode.androidannotations.annotations.ViewById;
-
 import cz.destil.feelings.R;
+import cz.destil.feelings.data.Feeling;
 import cz.destil.feelings.data.Feeling.Feelings;
 import cz.destil.feelings.notify.AlarmSetter;
 import cz.destil.feelings.ui.widgets.FeelingsChart;
@@ -33,78 +38,95 @@ import cz.destil.feelings.ui.widgets.FeelingsChart;
  * @author Destil
  */
 
-@EActivity(R.layout.activity_main)
-@OptionsMenu(R.menu.main_menu)
 public class MainActivity extends Activity {
 
 	@SuppressWarnings("unused")
 	private static final String TAG = "FeelingsActivity";
-	@ViewById
-	LinearLayout chart;
-	private GraphicalView chartView;
+	private MainActivity c = this;
+	private List<Feeling> feelings;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setupTabs();
 		updateOnDataChanges();
 		setPeriodicNotifications();
 	}
 
-	protected void onResume() {
-		super.onResume();
-		if (chartView == null) {
-			buildChart();
-		} else {
-			chartView.repaint();
-		}
-	}
+	/**
+	 * Sets up tabs
+	 */
+	private void setupTabs() {
+		ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		// Graph tab
+		Tab tab1 = actionBar.newTab();
+		tab1.setText(R.string.graph);
+		tab1.setTabListener(new TabListener() {
 
-	@OptionsItem
-	void newFeelingSelected() {
-		startActivity(new Intent(this, NewFeelingActivity_.class));
-	}
+			@Override
+			public void onTabUnselected(Tab tab, FragmentTransaction ft) {
 
-	@OptionsItem
-	void settingsSelected() {
-		startActivity(new Intent(this, SettingsActivity.class));
+			}
+
+			@Override
+			public void onTabSelected(Tab tab, FragmentTransaction ft) {
+				setContentView(R.layout.tab_graph);
+				new GraphTask().execute();
+			}
+
+			@Override
+			public void onTabReselected(Tab tab, FragmentTransaction ft) {
+			}
+		});
+		actionBar.addTab(tab1);
+		// Stats tab
+		Tab tab2 = actionBar.newTab();
+		tab2.setText(R.string.stats);
+		tab2.setTabListener(new TabListener() {
+
+			@Override
+			public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+			}
+
+			@Override
+			public void onTabSelected(Tab tab, FragmentTransaction ft) {
+				setContentView(R.layout.tab_stats);
+				new StatsTask().execute();
+			}
+
+			@Override
+			public void onTabReselected(Tab tab, FragmentTransaction ft) {
+			}
+		});
+		actionBar.addTab(tab2);
 	}
 
 	/**
-	 * Builds chart from database data
+	 * Defining menu
 	 */
-	@Background
-	void buildChart() {
-		Cursor cursor = getContentResolver().query(Feelings.CONTENT_URI,
-				new String[] { Feelings.CREATED, Feelings.FEELING }, null, null, null);
-		TimeSeries series = new TimeSeries("Feeling");
-		if (cursor.getCount() == 0) {
-			cursor.close();
-			return;
-		}
-		while (cursor.moveToNext()) {
-			Date date = new Date(cursor.getLong(0));
-			double feeling = cursor.getInt(1);
-			series.add(date, feeling);
-		}
-		cursor.close();
-		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
-		dataset.addSeries(series);
-		displayChart(dataset);
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu, menu);
+		return true;
 	}
 
 	/**
-	 * Displays chart in UI
-	 * 
-	 * @param dataset
+	 * When menu clicked
 	 */
-	@UiThread
-	void displayChart(XYMultipleSeriesDataset dataset) {
-		FeelingsChart feelingsChart = new FeelingsChart(dataset);
-		chartView = new GraphicalView(this, feelingsChart);
-		if (chart.getChildCount() > 0) {
-			chart.removeAllViews();
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.settings:
+			startActivity(new Intent(this, SettingsActivity.class));
+			return true;
+		case R.id.new_feeling:
+			startActivity(new Intent(this, NewFeelingActivity.class));
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
-		chart.addView(chartView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 	}
 
 	/**
@@ -114,7 +136,7 @@ public class MainActivity extends Activity {
 		getContentResolver().registerContentObserver(Feelings.CONTENT_URI, true, new ContentObserver(null) {
 			@Override
 			public void onChange(boolean selfChange) {
-				buildChart();
+				new GraphTask().execute();
 			}
 		});
 	}
@@ -124,5 +146,98 @@ public class MainActivity extends Activity {
 	 */
 	private void setPeriodicNotifications() {
 		sendBroadcast(new Intent(this, AlarmSetter.class));
+	}
+
+	/**
+	 * Constructs graph.
+	 * 
+	 * @author Destil
+	 */
+	class GraphTask extends AsyncTask<Void, Void, XYMultipleSeriesDataset> {
+
+		@Override
+		protected XYMultipleSeriesDataset doInBackground(Void... params) {
+			feelings = Feelings.getAll(c);
+			TimeSeries series = new TimeSeries("Feeling");
+			for (Feeling feeling : feelings) {
+				series.add(new Date(feeling.created), feeling.value);
+			}
+			XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
+			dataset.addSeries(series);
+			return dataset;
+		}
+
+		@Override
+		protected void onPostExecute(XYMultipleSeriesDataset dataset) {
+			FeelingsChart feelingsChart = new FeelingsChart(dataset);
+			GraphicalView chartView = new GraphicalView(c, feelingsChart);
+			LinearLayout chart = (LinearLayout) findViewById(R.id.chart);
+			if (chart.getChildCount() > 0) {
+				chart.removeAllViews();
+			}
+			chart.addView(chartView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		}
+	}
+
+	/**
+	 * Tasks which calculate stats.
+	 * 
+	 * @author Destil
+	 */
+	class StatsTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			// average for each day of week
+			Calendar calendar = new GregorianCalendar();
+			List<DayOfWeekStat> dayOfWeekStats = new ArrayList<DayOfWeekStat>();
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.MONDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.TUESDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.WEDNESDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.THURSDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.FRIDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.SATURDAY));
+			dayOfWeekStats.add(new DayOfWeekStat(Calendar.SUNDAY));
+			int[] sumPerDay = new int[7];
+			for (Feeling feeling : feelings) {
+				calendar.setTimeInMillis(feeling.created);
+				int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+				for (DayOfWeekStat dayOfWeekStat : dayOfWeekStats) {
+					if (dayOfWeekStat.day == calendar.get(Calendar.DAY_OF_WEEK)) {
+						dayOfWeekStat.sum += feeling.value;
+						dayOfWeekStat.count += 1;
+						break;
+					}
+				}
+				sumPerDay[dayOfWeek] += feeling.value;
+			}
+			Collections.sort(dayOfWeekStats);
+			System.out.println(dayOfWeekStats);
+			return null;
+		}
+	}
+
+	class DayOfWeekStat implements Comparable<DayOfWeekStat> {
+		public int day;
+		public int sum;
+		public int count;
+
+		public DayOfWeekStat(int day) {
+			this.day = day;
+		}
+
+		public double getAverage() {
+			return sum / count;
+		}
+
+		@Override
+		public String toString() {
+			return "day=" + day + ", avg=" + getAverage();
+		}
+
+		@Override
+		public int compareTo(DayOfWeekStat another) {
+			return (int) (this.getAverage() - another.getAverage());
+		}
 	}
 }

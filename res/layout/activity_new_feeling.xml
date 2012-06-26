@@ -10,6 +10,7 @@
         android:id="@+id/feeling6"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling6"
+        android:onClick="feelingClicked"
         android:text="@string/feeling6"
         android:textColor="@android:color/primary_text_light" />
 
@@ -19,6 +20,7 @@
         android:id="@+id/feeling5"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling5"
+        android:onClick="feelingClicked"
         android:text="@string/feeling5"
         android:textColor="@android:color/primary_text_light" />
 
@@ -28,6 +30,7 @@
         android:id="@+id/feeling4"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling4"
+        android:onClick="feelingClicked"
         android:text="@string/feeling4"
         android:textColor="@android:color/primary_text_light" />
 
@@ -36,6 +39,7 @@
     <Button
         android:id="@+id/feeling3"
         style="@style/FeelingButton"
+        android:onClick="feelingClicked"
         android:text="@string/feeling3"
         android:textColor="@color/feeling3" />
 
@@ -45,6 +49,7 @@
         android:id="@+id/feeling2"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling2"
+        android:onClick="feelingClicked"
         android:text="@string/feeling2"
         android:textColor="@android:color/primary_text_dark" />
 
@@ -54,6 +59,7 @@
         android:id="@+id/feeling1"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling1"
+        android:onClick="feelingClicked"
         android:text="@string/feeling1"
         android:textColor="@android:color/primary_text_dark" />
 
@@ -63,6 +69,7 @@
         android:id="@+id/feeling0"
         style="@style/FeelingButton"
         android:background="@drawable/btn_feeling0"
+        android:onClick="feelingClicked"
         android:text="@string/feeling0"
         android:textColor="@android:color/primary_text_dark" />
 

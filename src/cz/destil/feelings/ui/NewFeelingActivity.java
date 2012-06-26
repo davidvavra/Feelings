@@ -11,10 +11,6 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-import com.googlecode.androidannotations.annotations.Click;
-import com.googlecode.androidannotations.annotations.EActivity;
-
 import cz.destil.feelings.R;
 import cz.destil.feelings.data.Feeling.Feelings;
 
@@ -25,12 +21,12 @@ import cz.destil.feelings.data.Feeling.Feelings;
  * @author Destil
  */
 
-@EActivity(R.layout.activity_new_feeling)
 public class NewFeelingActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_new_feeling);
 		String action = getIntent().getAction();
 		if (action != null && action.equals(Intent.ACTION_TIME_TICK)) {
 			// called from notification
@@ -41,7 +37,6 @@ public class NewFeelingActivity extends Activity {
 		}
 	}
 	
-	@Click({ R.id.feeling0, R.id.feeling1, R.id.feeling2, R.id.feeling3, R.id.feeling4, R.id.feeling5, R.id.feeling6 })
 	void feelingClicked(View view) {
 		String id = getResources().getResourceEntryName(view.getId());
 		String number = id.substring(id.length() - 1, id.length());
@@ -53,7 +48,7 @@ public class NewFeelingActivity extends Activity {
 	    switch (item.getItemId()) {
 	        case android.R.id.home:
 	            // app icon in action bar clicked; go home
-	            Intent intent = new Intent(this, MainActivity_.class);
+	            Intent intent = new Intent(this, MainActivity.class);
 	            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 	            startActivity(intent);
 	            return true;
@@ -70,7 +65,7 @@ public class NewFeelingActivity extends Activity {
 		Calendar today = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH),
 				now.get(Calendar.DAY_OF_MONTH));
 		ContentValues values = new ContentValues();
-		values.put(Feelings.FEELING, feeling);
+		values.put(Feelings.VALUE, feeling);
 		values.put(Feelings.CREATED, today.getTimeInMillis());
 		values.put(Feelings.NOTE, "");
 		Cursor cursor = getContentResolver().query(Feelings.CONTENT_URI, null,

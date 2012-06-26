@@ -7,7 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import cz.destil.feelings.R;
-import cz.destil.feelings.ui.NewFeelingActivity_;
+import cz.destil.feelings.ui.NewFeelingActivity;
 
 public class NotificationStarter extends BroadcastReceiver {
 
@@ -20,7 +20,7 @@ public class NotificationStarter extends BroadcastReceiver {
 		NotificationManager notificationManager = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context,
-				NewFeelingActivity_.class).setAction(Intent.ACTION_TIME_TICK), 0);
+				NewFeelingActivity.class).setAction(Intent.ACTION_TIME_TICK), 0);
 		Notification notification = new Notification.Builder(context).setContentIntent(pendingIntent)
 				.setSmallIcon(R.drawable.ic_launcher).setTicker(context.getString(R.string.how_do_i_feel_today))
 				.setWhen(System.currentTimeMillis()).setAutoCancel(true)

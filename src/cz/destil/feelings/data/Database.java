@@ -40,7 +40,7 @@ public class Database extends ContentProvider {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL("CREATE TABLE " + FEELINGS_TABLE_NAME + " (" + Feelings._ID + " INTEGER PRIMARY KEY,"
-					+ Feelings.FEELING + " INTEGER," + Feelings.CREATED + " BIGINT" + ", " + Feelings.NOTE + " TEXT)");
+					+ Feelings.VALUE + " INTEGER," + Feelings.CREATED + " BIGINT" + ", " + Feelings.NOTE + " TEXT)");
 			}
 
 		@Override
