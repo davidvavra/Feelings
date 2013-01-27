@@ -18,5 +18,6 @@
     <string name="notification_time">Notification time</string>
     <string name="graph">Graph</string>
     <string name="stats">Stats</string>
+    <string name="best_days">Best days:</string>
 
 </resources>

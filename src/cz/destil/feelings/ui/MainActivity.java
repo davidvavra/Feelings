@@ -6,10 +6,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.BarChart;
+import org.achartengine.chart.BarChart.Type;
+import org.achartengine.model.CategorySeries;
 import org.achartengine.model.TimeSeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
+import org.achartengine.renderer.SimpleSeriesRenderer;
+import org.achartengine.renderer.XYMultipleSeriesRenderer;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -18,6 +24,7 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.database.ContentObserver;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,6 +32,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import cz.destil.feelings.R;
 import cz.destil.feelings.data.Feeling;
 import cz.destil.feelings.data.Feeling.Feelings;
@@ -179,6 +187,21 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	protected XYMultipleSeriesRenderer buildBarRenderer(int[] colors) {
+		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
+		renderer.setAxisTitleTextSize(16);
+		renderer.setChartTitleTextSize(20);
+		renderer.setLabelsTextSize(15);
+		renderer.setLegendTextSize(15);
+		int length = colors.length;
+		for (int i = 0; i < length; i++) {
+			SimpleSeriesRenderer r = new SimpleSeriesRenderer();
+			r.setColor(colors[i]);
+			renderer.addSeriesRenderer(r);
+		}
+		return renderer;
+	}
+
 	/**
 	 * Tasks which calculate stats.
 	 * 
@@ -186,11 +209,13 @@ public class MainActivity extends Activity {
 	 */
 	class StatsTask extends AsyncTask<Void, Void, Void> {
 
+		List<DayOfWeekStat> dayOfWeekStats;
+
 		@Override
 		protected Void doInBackground(Void... params) {
 			// average for each day of week
 			Calendar calendar = new GregorianCalendar();
-			List<DayOfWeekStat> dayOfWeekStats = new ArrayList<DayOfWeekStat>();
+			dayOfWeekStats = new ArrayList<DayOfWeekStat>();
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.MONDAY));
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.TUESDAY));
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.WEDNESDAY));
@@ -198,10 +223,8 @@ public class MainActivity extends Activity {
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.FRIDAY));
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.SATURDAY));
 			dayOfWeekStats.add(new DayOfWeekStat(Calendar.SUNDAY));
-			int[] sumPerDay = new int[7];
 			for (Feeling feeling : feelings) {
 				calendar.setTimeInMillis(feeling.created);
-				int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
 				for (DayOfWeekStat dayOfWeekStat : dayOfWeekStats) {
 					if (dayOfWeekStat.day == calendar.get(Calendar.DAY_OF_WEEK)) {
 						dayOfWeekStat.sum += feeling.value;
@@ -209,11 +232,21 @@ public class MainActivity extends Activity {
 						break;
 					}
 				}
-				sumPerDay[dayOfWeek] += feeling.value;
 			}
 			Collections.sort(dayOfWeekStats);
-			System.out.println(dayOfWeekStats);
 			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void aaa) {
+			LinearLayout bestDays = (LinearLayout) findViewById(R.id.best_days);
+			bestDays.removeAllViews();
+			int i=1;
+			for (DayOfWeekStat dayOfWeekStat : dayOfWeekStats) {
+				TextView textView = new TextView(c);
+				textView.setText(i+++". "+dayOfWeekStat.getDayName());
+				bestDays.addView(textView);
+			}
 		}
 	}
 
@@ -227,17 +260,18 @@ public class MainActivity extends Activity {
 		}
 
 		public double getAverage() {
-			return sum / count;
+			return (double) sum / count;
 		}
 
-		@Override
-		public String toString() {
-			return "day=" + day + ", avg=" + getAverage();
+		public String getDayName() {
+			Calendar calendar = new GregorianCalendar();
+			calendar.set(Calendar.DAY_OF_WEEK, this.day);
+			return calendar.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
 		}
 
 		@Override
 		public int compareTo(DayOfWeekStat another) {
-			return (int) (this.getAverage() - another.getAverage());
+			return (int) ((another.getAverage() - this.getAverage()) * 1000);
 		}
 	}
 }

@@ -37,7 +37,10 @@ public class NewFeelingActivity extends Activity {
 		}
 	}
 	
-	void feelingClicked(View view) {
+	/**
+	 * When any feeling button was clicked.
+	 */
+	public void feelingClicked(View view) {
 		String id = getResources().getResourceEntryName(view.getId());
 		String number = id.substring(id.length() - 1, id.length());
 		addFeeling(Integer.parseInt(number));

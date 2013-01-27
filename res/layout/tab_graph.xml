@@ -3,7 +3,7 @@
     android:id="@+id/chart"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/graph_background"
+    android:background="@drawable/graph_background_3"
     android:orientation="horizontal" >
 
 </LinearLayout>
